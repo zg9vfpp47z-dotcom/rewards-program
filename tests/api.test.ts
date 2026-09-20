@@ -4,7 +4,7 @@ import { createApp } from "../src/app";
 
 describe("Rewards API", () => {
   it("registers, tracks activity, and claims rewards", async () => {
-    const app = createApp();
+    const app = createApp(undefined, { adminToken: "test-admin-token" });
 
     const createUser = await request(app).post("/users").send({ walletAddress: "wallet-test-123456" });
     expect(createUser.status).toBe(201);
@@ -24,10 +24,11 @@ describe("Rewards API", () => {
   });
 
   it("updates reward config from admin endpoint", async () => {
-    const app = createApp();
+    const app = createApp(undefined, { adminToken: "test-admin-token" });
     const response = await request(app)
       .put("/admin/rewards/config")
       .set("x-admin-id", "admin-1")
+      .set("x-admin-token", "test-admin-token")
       .send({
         baseRewardRate: 0.2,
         tiers: [
@@ -39,5 +40,18 @@ describe("Rewards API", () => {
     expect(response.status).toBe(200);
     expect(response.body.config.baseRewardRate).toBe(0.2);
     expect(response.body.config.tiers).toHaveLength(2);
+  });
+
+  it("rejects unauthenticated admin access", async () => {
+    const app = createApp(undefined, { adminToken: "test-admin-token" });
+
+    const updateAttempt = await request(app).put("/admin/rewards/config").send({
+      baseRewardRate: 0.2,
+      tiers: [{ name: "Tier", minPoints: 0, multiplier: 1 }],
+    });
+    expect(updateAttempt.status).toBe(401);
+
+    const logsAttempt = await request(app).get("/admin/audit-logs");
+    expect(logsAttempt.status).toBe(401);
   });
 });

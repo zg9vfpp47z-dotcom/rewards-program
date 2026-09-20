@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { z } from "zod";
 import { RewardsService } from "./service";
 
@@ -23,9 +23,30 @@ const configSchema = z.object({
     .min(1),
 });
 
-export const createApp = (service = new RewardsService()) => {
+type AppOptions = {
+  adminToken?: string;
+};
+
+export const createApp = (service = new RewardsService(), options: AppOptions = {}) => {
   const app = express();
+  const adminToken = options.adminToken ?? process.env.ADMIN_API_TOKEN ?? "";
   app.use(express.json());
+
+  const requireAdmin = (req: Request, res: Response): string | null => {
+    if (!adminToken) {
+      res.status(500).json({ error: "Admin API token is not configured" });
+      return null;
+    }
+
+    const actor = req.header("x-admin-id");
+    const token = req.header("x-admin-token");
+    if (!actor || !token || token !== adminToken) {
+      res.status(401).json({ error: "Unauthorized admin request" });
+      return null;
+    }
+
+    return actor;
+  };
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
@@ -67,7 +88,8 @@ export const createApp = (service = new RewardsService()) => {
       return res.status(200).json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = message === "No rewards to claim" ? 400 : 404;
+      const status =
+        message === "No rewards to claim" ? 400 : message === "User not found" ? 404 : 502;
       return res.status(status).json({ error: message });
     }
   });
@@ -77,12 +99,16 @@ export const createApp = (service = new RewardsService()) => {
   });
 
   app.put("/admin/rewards/config", (req, res) => {
+    const actor = requireAdmin(req, res);
+    if (!actor) {
+      return;
+    }
+
     const parsed = configSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
     }
 
-    const actor = req.header("x-admin-id") ?? "admin";
     try {
       const config = service.updateRewardConfig(parsed.data, actor);
       return res.status(200).json({ config });
@@ -97,6 +123,11 @@ export const createApp = (service = new RewardsService()) => {
   });
 
   app.get("/admin/audit-logs", (_req, res) => {
+    const actor = requireAdmin(_req, res);
+    if (!actor) {
+      return;
+    }
+
     return res.status(200).json({ logs: service.listAuditLogs() });
   });
 

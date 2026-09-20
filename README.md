@@ -49,8 +49,12 @@ npm test
 - `GET /rewards/distributions`
 
 ### Admin
+Admin routes require:
+- `x-admin-id: <admin-actor-id>`
+- `x-admin-token: <token matching ADMIN_API_TOKEN>`
+
 - `PUT /admin/rewards/config`
-  - header: `x-admin-id: admin-id`
+  - headers: `x-admin-id`, `x-admin-token`
   - body:
     ```json
     {
@@ -88,4 +92,5 @@ curl http://localhost:3000/admin/audit-logs
 
 ## Deployment Notes
 - Set `PORT` environment variable as needed.
+- Set `ADMIN_API_TOKEN` to protect admin endpoints.
 - The current storage is in-memory for fast setup; move state to persistent storage (PostgreSQL/Redis) for horizontally scaled production deployments.
