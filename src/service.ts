@@ -139,7 +139,10 @@ export class RewardsService {
   }
 
   getRewardConfig(): RewardConfig {
-    return this.config;
+    return {
+      baseRewardRate: this.config.baseRewardRate,
+      tiers: this.config.tiers.map((tier) => ({ ...tier })),
+    };
   }
 
   updateRewardConfig(config: RewardConfig, actor = "admin"): RewardConfig {
@@ -170,11 +173,14 @@ export class RewardsService {
   }
 
   listDistributions(): DistributionRecord[] {
-    return this.distributions;
+    return this.distributions.map((distribution) => ({ ...distribution }));
   }
 
   listAuditLogs(): AuditLog[] {
-    return this.auditLogs;
+    return this.auditLogs.map((log) => ({
+      ...log,
+      metadata: { ...log.metadata },
+    }));
   }
 
   private log(action: string, actor: string, metadata: Record<string, unknown>) {

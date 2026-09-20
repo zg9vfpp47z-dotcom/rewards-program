@@ -85,9 +85,13 @@ curl -X POST http://localhost:3000/users/<USER_ID>/activity \
 # 3) Claim rewards
 curl -X POST http://localhost:3000/users/<USER_ID>/claim
 
-# 4) View distributions and audit
-curl http://localhost:3000/rewards/distributions
-curl http://localhost:3000/admin/audit-logs
+# 4) View distributions and audit (admin)
+curl http://localhost:3000/rewards/distributions \
+  -H 'x-admin-id: admin-1' \
+  -H 'x-admin-token: <ADMIN_API_TOKEN>'
+curl http://localhost:3000/admin/audit-logs \
+  -H 'x-admin-id: admin-1' \
+  -H 'x-admin-token: <ADMIN_API_TOKEN>'
 ```
 
 ## Deployment Notes

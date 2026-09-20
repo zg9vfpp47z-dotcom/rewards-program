@@ -89,5 +89,18 @@ describe("Rewards API", () => {
         ],
       });
     expect(duplicateBoundary.status).toBe(400);
+
+    const invalidRate = await request(app)
+      .put("/admin/rewards/config")
+      .set("x-admin-id", "admin-1")
+      .set("x-admin-token", "test-admin-token")
+      .send({
+        baseRewardRate: 0,
+        tiers: [
+          { name: "Tier1", minPoints: 0, multiplier: 1 },
+          { name: "Tier2", minPoints: 100, multiplier: 2 },
+        ],
+      });
+    expect(invalidRate.status).toBe(400);
   });
 });
