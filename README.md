@@ -46,7 +46,7 @@ npm test
 
 ### Rewards
 - `GET /rewards/config`
-- `GET /rewards/distributions`
+- `GET /rewards/distributions` (admin-authenticated)
 
 ### Admin
 Admin routes require:

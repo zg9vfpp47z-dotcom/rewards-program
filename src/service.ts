@@ -150,9 +150,19 @@ export class RewardsService {
       throw new Error("At least one reward tier is required");
     }
 
+    const sortedTiers = [...config.tiers].sort((a, b) => a.minPoints - b.minPoints);
+    if (sortedTiers[0].minPoints !== 0) {
+      throw new Error("The lowest reward tier must start at minPoints 0");
+    }
+    for (let i = 1; i < sortedTiers.length; i += 1) {
+      if (sortedTiers[i - 1].minPoints >= sortedTiers[i].minPoints) {
+        throw new Error("Reward tier minPoints must be strictly increasing");
+      }
+    }
+
     this.config = {
       baseRewardRate: config.baseRewardRate,
-      tiers: [...config.tiers].sort((a, b) => a.minPoints - b.minPoints),
+      tiers: sortedTiers,
     };
 
     this.log("rewards.config_updated", actor, { config: this.config });

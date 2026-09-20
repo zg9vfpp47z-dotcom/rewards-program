@@ -119,6 +119,11 @@ export const createApp = (service = new RewardsService(), options: AppOptions = 
   });
 
   app.get("/rewards/distributions", (_req, res) => {
+    const actor = requireAdmin(_req, res);
+    if (!actor) {
+      return;
+    }
+
     return res.status(200).json({ distributions: service.listDistributions() });
   });
 
