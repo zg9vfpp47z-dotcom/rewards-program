@@ -53,14 +53,18 @@ export class RewardsService {
 
     this.users.set(id, user);
     this.log("user.registered", "system", { userId: id, walletAddress });
-    return user;
+    return this.cloneUser(user);
   }
 
   listUsers(): User[] {
-    return Array.from(this.users.values());
+    return Array.from(this.users.values()).map((user) => this.cloneUser(user));
   }
 
   getUser(userId: string): User {
+    return this.cloneUser(this.getUserRecord(userId));
+  }
+
+  private getUserRecord(userId: string): User {
     const user = this.users.get(userId);
     if (!user) {
       throw new Error("User not found");
@@ -73,7 +77,7 @@ export class RewardsService {
       throw new Error("pointsDelta must be greater than zero");
     }
 
-    const user = this.getUser(userId);
+    const user = this.getUserRecord(userId);
     user.points += pointsDelta;
 
     const calculation = this.engine.calculate(pointsDelta, user.points, this.config);
@@ -87,11 +91,11 @@ export class RewardsService {
       tier: calculation.tier,
     });
 
-    return { user, calculation };
+    return { user: this.cloneUser(user), calculation };
   }
 
   async claimRewards(userId: string): Promise<{ user: User; distribution: DistributionRecord }> {
-    const user = this.getUser(userId);
+    const user = this.getUserRecord(userId);
     if (user.rewardBalance <= 0) {
       throw new Error("No rewards to claim");
     }
@@ -125,7 +129,7 @@ export class RewardsService {
         txHash: distribution.txHash,
       });
 
-      return { user, distribution };
+      return { user: this.cloneUser(user), distribution: { ...distribution } };
     } catch (error) {
       distribution.status = "failed";
       distribution.updatedAt = now();
@@ -165,7 +169,7 @@ export class RewardsService {
 
     this.config = {
       baseRewardRate: config.baseRewardRate,
-      tiers: sortedTiers,
+      tiers: sortedTiers.map((tier) => ({ ...tier })),
     };
 
     this.log("rewards.config_updated", actor, { config: this.config });
@@ -191,5 +195,9 @@ export class RewardsService {
       metadata,
       timestamp: now(),
     });
+  }
+
+  private cloneUser(user: User): User {
+    return { ...user };
   }
 }

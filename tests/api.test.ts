@@ -35,14 +35,16 @@ describe("Rewards API", () => {
       .send({
         baseRewardRate: 0.2,
         tiers: [
-          { name: "Starter", minPoints: 0, multiplier: 1 },
           { name: "Elite", minPoints: 250, multiplier: 2 },
+          { name: "Starter", minPoints: 0, multiplier: 1 },
         ],
       });
 
     expect(response.status).toBe(200);
     expect(response.body.config.baseRewardRate).toBe(0.2);
     expect(response.body.config.tiers).toHaveLength(2);
+    expect(response.body.config.tiers[0].name).toBe("Starter");
+    expect(response.body.config.tiers[1].name).toBe("Elite");
   });
 
   it("rejects unauthenticated admin access", async () => {
