@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { RewardsEngine } from "./rewardsEngine";
 import { AuditLog, DistributionRecord, RewardCalculation, RewardConfig, User } from "./types";
 
-type TokenDistributor = {
+export type TokenDistributor = {
   sendReward(walletAddress: string, amount: number): Promise<{ txHash: string }>;
 };
 
@@ -76,7 +76,7 @@ export class RewardsService {
     const user = this.getUser(userId);
     user.points += pointsDelta;
 
-    const calculation = this.engine.calculate(pointsDelta, this.config);
+    const calculation = this.engine.calculate(pointsDelta, user.points, this.config);
     user.rewardBalance = Number((user.rewardBalance + calculation.rewardAmount).toFixed(4));
     user.updatedAt = now();
 

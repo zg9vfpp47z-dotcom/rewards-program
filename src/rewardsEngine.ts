@@ -1,9 +1,9 @@
 import { RewardCalculation, RewardConfig, Tier } from "./types";
 
 export class RewardsEngine {
-  calculate(points: number, config: RewardConfig): RewardCalculation {
-    const tier = this.resolveTier(points, config.tiers);
-    const rewardAmount = Number((points * config.baseRewardRate * tier.multiplier).toFixed(4));
+  calculate(activityPoints: number, totalPoints: number, config: RewardConfig): RewardCalculation {
+    const tier = this.resolveTier(totalPoints, config.tiers);
+    const rewardAmount = Number((activityPoints * config.baseRewardRate * tier.multiplier).toFixed(4));
 
     return {
       tier: tier.name,

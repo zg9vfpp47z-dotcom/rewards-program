@@ -56,7 +56,8 @@ export const createApp = (service = new RewardsService()) => {
       return res.status(200).json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      return res.status(404).json({ error: message });
+      const status = message === "User not found" ? 404 : 400;
+      return res.status(status).json({ error: message });
     }
   });
 

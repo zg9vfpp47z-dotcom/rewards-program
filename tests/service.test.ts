@@ -17,6 +17,19 @@ describe("RewardsService", () => {
     expect(second.user.rewardBalance).toBe(23);
   });
 
+  it("uses cumulative points to resolve tiers across activities", () => {
+    const service = new RewardsService();
+    const user = service.registerUser("wallet-cumulative-01");
+
+    const first = service.trackActivity(user.id, 90);
+    expect(first.calculation.tier).toBe("Bronze");
+    expect(first.calculation.rewardAmount).toBe(9);
+
+    const second = service.trackActivity(user.id, 20);
+    expect(second.calculation.tier).toBe("Silver");
+    expect(second.calculation.rewardAmount).toBe(2.5);
+  });
+
   it("claims rewards and tracks distribution", async () => {
     const service = new RewardsService();
     const user = service.registerUser("wallet-abcdefgh");
